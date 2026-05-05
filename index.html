@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramanya Go: Pro Edition</title>
+    <title>Paramanya Go: Süper 3D</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Font ekleyerek daha modern bir görünüm sağlıyoruz -->
     <link href="https://googleapis.com" rel="stylesheet">
 </head>
 <body>
-    <!-- Arka plandaki şehir ışıkları efekti -->
     <div class="city-lights"></div>
     <canvas id="confetti-canvas"></canvas>
 
     <div id="ui-overlay">
-        <!-- Oyuncu Paneli -->
         <div class="player-hud" id="hud-p1">
             <div class="avatar-circle">🎩</div>
             <div class="info">
@@ -24,14 +21,12 @@
             </div>
         </div>
 
-        <!-- Merkezi Zar ve Durum Paneli -->
         <div class="dice-section">
             <div id="dice-result">🎲</div>
             <button id="roll-btn">ZARI FIRLAT</button>
             <div class="turn-counter">TUR: <span id="turn-num">1</span></div>
         </div>
 
-        <!-- Bot Paneli -->
         <div class="player-hud" id="hud-p2">
             <div class="info" style="text-align: right;">
                 <span class="player-label">BOT</span>
@@ -42,7 +37,6 @@
         </div>
     </div>
 
-    <!-- Oyun Tahtası -->
     <div id="board-container">
         <div id="board">
             <div id="p1-token" class="token">🎩</div>
@@ -50,23 +44,18 @@
         </div>
     </div>
 
-    <!-- Bildirim Penceresi -->
     <div id="log-window">
         <div class="log-title">OYUN AKIŞI</div>
-        <ul id="event-log">
-            <li>Şehri fethetmeye hazır mısın?</li>
-        </ul>
+        <ul id="event-log"><li>3D Şehre hoş geldin!</li></ul>
     </div>
 
-    <!-- Karar/Şans Kartı Modalı -->
     <div id="modal-overlay" class="hidden">
         <div id="decision-box">
-            <div class="card-glow"></div>
             <div class="card-icon">🎁</div>
-            <h3 id="modal-title">BAŞLIK</h3>
-            <p id="modal-desc">Açıklama metni buraya gelecek.</p>
+            <h3 id="modal-title"></h3>
+            <p id="modal-desc"></p>
             <div class="modal-btns">
-                <button id="buy-btn" class="confirm">ONAYLA</button>
+                <button id="buy-btn" class="confirm">AL / EL KOY</button>
                 <button id="skip-btn" class="cancel">VAZGEÇ</button>
             </div>
         </div>
