@@ -3,27 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramanya Go: Konfeti Edition</title>
+    <title>Paramanya Go: Pro Edition</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font ekleyerek daha modern bir görünüm sağlıyoruz -->
+    <link href="https://googleapis.com" rel="stylesheet">
 </head>
 <body>
-    <canvas id="confetti-canvas"></canvas> <!-- Konfeti Katmanı -->
+    <!-- Arka plandaki şehir ışıkları efekti -->
+    <div class="city-lights"></div>
+    <canvas id="confetti-canvas"></canvas>
 
     <div id="ui-overlay">
+        <!-- Oyuncu Paneli -->
         <div class="player-hud" id="hud-p1">
-            <div class="avatar">🎩</div>
-            <div class="info"><span>Siz</span><br><span class="money" id="money-p1">2000₺</span></div>
+            <div class="avatar-circle">🎩</div>
+            <div class="info">
+                <span class="player-label">SİZ</span>
+                <span class="money" id="money-p1">2000₺</span>
+                <div class="inventory" id="inv-p1">🏠 x0</div>
+            </div>
         </div>
+
+        <!-- Merkezi Zar ve Durum Paneli -->
         <div class="dice-section">
             <div id="dice-result">🎲</div>
-            <button id="roll-btn">ZAR AT</button>
+            <button id="roll-btn">ZARI FIRLAT</button>
+            <div class="turn-counter">TUR: <span id="turn-num">1</span></div>
         </div>
+
+        <!-- Bot Paneli -->
         <div class="player-hud" id="hud-p2">
-            <div class="info" style="text-align: right;"><span>Bot</span><br><span class="money" id="money-p2">2000₺</span></div>
-            <div class="avatar">🏎️</div>
+            <div class="info" style="text-align: right;">
+                <span class="player-label">BOT</span>
+                <span class="money" id="money-p2">2000₺</span>
+                <div class="inventory" id="inv-p2">🏢 x0</div>
+            </div>
+            <div class="avatar-circle">🏎️</div>
         </div>
     </div>
 
+    <!-- Oyun Tahtası -->
     <div id="board-container">
         <div id="board">
             <div id="p1-token" class="token">🎩</div>
@@ -31,16 +50,24 @@
         </div>
     </div>
 
-    <div id="log-window"><ul id="event-log"><li>Hoş geldiniz! Konfeti için kazanın!</li></ul></div>
+    <!-- Bildirim Penceresi -->
+    <div id="log-window">
+        <div class="log-title">OYUN AKIŞI</div>
+        <ul id="event-log">
+            <li>Şehri fethetmeye hazır mısın?</li>
+        </ul>
+    </div>
 
+    <!-- Karar/Şans Kartı Modalı -->
     <div id="modal-overlay" class="hidden">
         <div id="decision-box">
+            <div class="card-glow"></div>
             <div class="card-icon">🎁</div>
-            <h3 id="modal-title"></h3>
-            <p id="modal-desc"></p>
+            <h3 id="modal-title">BAŞLIK</h3>
+            <p id="modal-desc">Açıklama metni buraya gelecek.</p>
             <div class="modal-btns">
-                <button id="buy-btn" class="confirm">TAMAM</button>
-                <button id="skip-btn" class="cancel">KAPAT</button>
+                <button id="buy-btn" class="confirm">ONAYLA</button>
+                <button id="skip-btn" class="cancel">VAZGEÇ</button>
             </div>
         </div>
     </div>
