@@ -61,10 +61,12 @@ function animateConfetti() {
 // SES SİSTEMİ
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSfx(freq, type = 'sine', dur = 0.1) {
-    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + dur);
+    try {
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch(e){}
 }
 
 function init() {
@@ -100,26 +102,57 @@ async function roll() {
 
 function processCell(p) {
     const cell = BOARD_DATA[p.pos];
+    const idx = p.pos;
+
     if (cell.t === "prop") {
-        if (!state.owners[p.pos]) {
-            if (p.id === 'p1') showModal("MÜLK AL", cell.n, "🏠", `${cell.p}₺'ye alalım mı?`, () => { buy(p, p.pos); endTurn(); }, true);
-            else { if (p.money > cell.p + 200) buy(p, p.pos); endTurn(); }
-        } else if (state.owners[p.pos] !== p.id) {
-            const owner = state.owners[p.pos] === 'p1' ? state.p1 : state.p2;
-            p.money -= cell.r; owner.money += cell.r; log(`${p.name} kira ödedi: ${cell.r}₺`); endTurn();
+        if (!state.owners[idx]) {
+            // SAHİPSİZ MÜLK
+            if (p.id === 'p1') showModal("MÜLK AL", cell.n, "🏠", `${cell.p}₺'ye alalım mı?`, () => { buy(p, idx); endTurn(); }, true);
+            else { if (p.money > cell.p + 250) buy(p, idx); endTurn(); }
+        } else if (state.owners[idx] !== p.id) {
+            // RAKİP MÜLKÜ (KİRA + EL KOYMA)
+            const owner = state.owners[idx] === 'p1' ? state.p1 : state.p2;
+            p.money -= cell.r; owner.money += cell.r;
+            log(`${p.name} kira ödedi: ${cell.r}₺`);
+            playSfx(80, 'sawtooth', 0.2);
+
+            if (p.id === 'p1') {
+                const takePrice = cell.p * 2;
+                showModal("EL KOYMA", cell.n, "💣", `Kira ödendi. Bu mülkü ${takePrice}₺'ye zorla satın almak ister misin?`, () => {
+                    if(p.money >= takePrice) {
+                        p.money -= takePrice;
+                        owner.money += takePrice;
+                        buy(p, idx, true);
+                        log("DÜŞMANIN MÜLKÜNE EL KOYDUNUZ!");
+                    } else { alert("Yeterli paranız yok!"); }
+                    endTurn();
+                }, true);
+            } else {
+                // Bot zekası: Eğer çok parası varsa ve kira ödediyse mülkü geri alabilir
+                if (p.money > cell.p * 3) {
+                    p.money -= cell.p * 2;
+                    state.p1.money += cell.p * 2;
+                    buy(p, idx, true);
+                    log("Bot mülkünüze EL KOYDU!");
+                }
+                endTurn();
+            }
         } else endTurn();
     } else if (cell.t === "chance" || cell.t === "chest") {
-        const card = (cell.t === "chance" ? cards.chance : cards.chest)[Math.floor(Math.random() * 2)];
+        const pool = (cell.t === "chance" ? cards.chance : cards.chest);
+        const card = pool[Math.floor(Math.random() * pool.length)];
         showModal(cell.t.toUpperCase(), card.m, card.i, "", () => { card.a(p); endTurn(); }, false);
     } else if (cell.t === "tojail") { p.pos = 6; p.jail = 3; log("Hapse!"); updateUI(); setTimeout(endTurn, 1000); }
+    else if (cell.t === "tax") { p.money -= cell.r; log("Vergi!"); endTurn(); }
     else endTurn();
 }
 
-function buy(p, idx) {
-    p.money -= BOARD_DATA[idx].p; state.owners[idx] = p.id;
+function buy(p, idx, force = false) {
+    if(!force) p.money -= BOARD_DATA[idx].p;
+    state.owners[idx] = p.id;
     const c = document.getElementsByClassName('cell')[idx];
     c.querySelector('.buildings').innerText = p.id === 'p1' ? '🏠' : '🏢';
-    c.style.boxShadow = `inset 0 0 15px ${p.id === 'p1' ? 'red' : 'blue'}`;
+    c.style.boxShadow = `inset 0 0 15px ${p.id === 'p1' ? 'rgba(239,68,68,0.7)' : 'rgba(59,130,246,0.7)'}`;
     updateUI(); playSfx(600, 'sine', 0.2);
 }
 
@@ -127,7 +160,7 @@ function endTurn() {
     hideModal(); updateUI();
     if (state.p1.money <= 0 || state.p2.money <= 0) {
         const win = state.p1.money > 0;
-        if(win) createConfetti(); // Sadece biz kazanınca konfeti!
+        if(win) createConfetti();
         showModal("OYUN BİTTİ", win ? "KAZANDINIZ!" : "BOT KAZANDI", win ? "🏆" : "💀", "Tekrar oynamak için tıkla.", () => location.reload(), false);
         return;
     }
@@ -147,7 +180,7 @@ function showModal(t, m, i, d, cb, isB) {
     document.getElementById('modal-overlay').classList.remove('hidden');
     document.getElementById('modal-title').innerText = t; document.getElementById('modal-desc').innerHTML = `<b>${m}</b><br>${d}`;
     document.getElementById('decision-box').querySelector('.card-icon').innerText = i;
-    document.getElementById('buy-btn').innerText = isB ? "AL" : "TAMAM"; document.getElementById('buy-btn').onclick = cb;
+    document.getElementById('buy-btn').innerText = isB ? "AL / EL KOY" : "TAMAM"; document.getElementById('buy-btn').onclick = cb;
     document.getElementById('skip-btn').classList.toggle('hidden', !isB); document.getElementById('skip-btn').onclick = () => { hideModal(); endTurn(); };
 }
 
