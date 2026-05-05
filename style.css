@@ -14,3 +14,32 @@ body { margin: 0; background: var(--bg); font-family: sans-serif; overflow: hidd
 .hidden { display: none !important; }
 #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
 #decision-box { background: white; padding: 20px; border-radius: 15px; text-align: center; }
+/* Sahiplik Şeridi */
+.cell-header {
+    transition: all 0.3s ease;
+}
+
+/* Oyuncu 1 Satın Alınca Şerit Rengi */
+.owner-p1 .cell-header {
+    background: var(--p1) !important;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+}
+
+/* Bot Satın Alınca Şerit Rengi */
+.owner-p2 .cell-header {
+    background: var(--p2) !important;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+}
+
+/* Bina İkonları Tasarımı */
+.buildings {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    margin-top: 2px;
+}
+
+.building-icon {
+    font-size: 14px;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+}
