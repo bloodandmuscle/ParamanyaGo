@@ -1,75 +1,55 @@
-const BOARD_DATA = [
-    { n: "BAŞLANGIÇ", t: "start", p: 0, r: 0, c: "#64748b", x: 0, y: 0 },
-    { n: "KADIKÖY", t: "prop", p: 200, r: 100, c: "#3b82f6", x: 1, y: 0 },
-    { n: "ŞANS", t: "chance", p: 0, r: 0, c: "#f59e0b", x: 2, y: 0 },
-    { n: "MODA", t: "prop", p: 250, r: 130, c: "#3b82f6", x: 3, y: 0 },
-    { n: "VERGİ", t: "tax", p: 0, r: 150, c: "#ef4444", x: 4, y: 0 },
-    { n: "BEŞİKTAŞ", t: "prop", p: 300, r: 180, c: "#10b981", x: 5, y: 0 },
-    { n: "HAPİS", t: "visit", p: 0, r: 0, c: "#475569", x: 5, y: 1 },
-    { n: "ETİLER", t: "prop", p: 350, r: 220, c: "#10b981", x: 5, y: 2 },
-    { n: "HAZİNE", t: "chest", p: 0, r: 0, c: "#34d399", x: 5, y: 3 },
-    { n: "BEBEK", t: "prop", p: 400, r: 260, c: "#10b981", x: 5, y: 4 },
-    { n: "PARK", t: "park", p: 0, r: 0, c: "#64748b", x: 5, y: 5 },
-    { n: "NİŞANTAŞI", t: "prop", p: 450, r: 320, c: "#a855f7", x: 4, y: 5 },
-    { n: "ŞANS", t: "chance", p: 0, r: 0, c: "#f59e0b", x: 3, y: 5 },
-    { n: "BEYOĞLU", t: "prop", p: 500, r: 400, c: "#a855f7", x: 2, y: 5 },
-    { n: "HAPSE GİT", t: "tojail", p: 0, r: 0, c: "#ef4444", x: 1, y: 5 },
-    { n: "FLORYA", t: "prop", p: 600, r: 500, c: "#ec4899", x: 0, y: 5 },
-    { n: "ADALAR", t: "prop", p: 700, r: 600, c: "#ec4899", x: 0, y: 4 },
-    { n: "HAZİNE", t: "chest", p: 0, r: 0, c: "#34d399", x: 0, y: 3 },
-    { n: "B.CADDE", t: "prop", p: 800, r: 800, c: "#ec4899", x: 0, y: 2 },
-    { n: "GELİR", t: "tax", p: 0, r: 200, c: "#ef4444", x: 0, y: 1 }
+// 40 Karelik Tam Monopoly Dizilimi
+const BOARD_DATA = [];
+const COORDS = [
+    // Alt Kenar (0-10)
+    ...Array.from({length: 11}, (_, i) => ({x: 10-i, y: 10})),
+    // Sol Kenar (11-20)
+    ...Array.from({length: 10}, (_, i) => ({x: 0, y: 9-i})),
+    // Üst Kenar (21-30)
+    ...Array.from({length: 10}, (_, i) => ({x: 1+i, y: 0})),
+    // Sağ Kenar (31-39)
+    ...Array.from({length: 9}, (_, i) => ({x: 10, y: 1+i}))
 ];
 
-const cards = {
-    chance: [
-        { m: "Hız Cezası! -200₺", a: (p) => p.money -= 200, i: "🏎️" },
-        { m: "Miras Kaldı! +500₺", a: (p) => p.money += 500, i: "📜" },
-        { m: "Hapse Girdin!", a: (p) => { p.pos = 6; p.jail = 3; }, i: "👮" }
-    ],
-    chest: [
-        { m: "Hazine Buldun! +300₺", a: (p) => p.money += 300, i: "💰" },
-        { m: "Yatırım Karı! +200₺", a: (p) => p.money += 200, i: "🏦" }
-    ]
-};
+const NAMES = ["BAŞLANGIÇ", "KASIMPAŞA", "HAZİNE", "DOLAPDERE", "VERGİ", "HAYDARPAŞA", "SULTANAHMET", "ŞANS", "KARAKÖY", "SİRKECİ", "HAPİS ZİYARET", "FATİH", "ELEKTRİK", "BEŞİKTAŞ", "ORTAKÖY", "VAPUR", "NİŞANTAŞI", "HAZİNE", "TEŞVİKİYE", "MACKA", "ÜCRETSİZ OTOPARK", "BAKIRKÖY", "ŞANS", "YEŞİLKÖY", "FLORYA", "HAVALİMANI", "LEVENT", "ETİLER", "SU SİSTEMİ", "BEBEK", "HAPSE GİT", "GÖZTEPE", "ERENKÖY", "HAZİNE", "CADDEBOSTAN", "GAR", "ŞANS", "BAĞDAT CAD.", "LÜKS VERGİ", "MODA"];
+const PRICES = [0, 60, 0, 80, 0, 200, 100, 0, 120, 140, 0, 160, 150, 180, 200, 200, 220, 0, 240, 260, 0, 280, 0, 300, 320, 200, 350, 380, 150, 400, 0, 450, 480, 0, 500, 200, 0, 600, 0, 800];
+const COLORS = ["#94a3b8", "#78350f", "#f59e0b", "#78350f", "#ef4444", "#1e293b", "#3b82f6", "#f59e0b", "#3b82f6", "#3b82f6", "#475569", "#ec4899", "#fbbf24", "#ec4899", "#ec4899", "#1e293b", "#f97316", "#f59e0b", "#f97316", "#f97316", "#94a3b8", "#22c55e", "#f59e0b", "#22c55e", "#22c55e", "#1e293b", "#a855f7", "#a855f7", "#fbbf24", "#a855f7", "#ef4444", "#10b981", "#10b981", "#f59e0b", "#10b981", "#1e293b", "#f59e0b", "#4338ca", "#ef4444", "#4338ca"];
 
-let state = { 
-    p1: { pos: 0, money: 2000, id: 'p1', name: 'Siz', emoji: '🎩', jail: 0, props: 0 }, 
-    p2: { pos: 0, money: 2000, id: 'p2', name: 'Bot', emoji: '🏎️', jail: 0, props: 0 }, 
-    owners: {}, turn: 1, moving: false, turnCount: 1 
-};
+NAMES.forEach((n, i) => {
+    BOARD_DATA.push({
+        n, x: COORDS[i].x, y: COORDS[i].y, 
+        p: PRICES[i], r: Math.floor(PRICES[i] * 0.4), 
+        c: COLORS[i], t: PRICES[i] > 0 ? "prop" : (n.includes("ŞANS") ? "chance" : (n.includes("HAZİNE") ? "chest" : "special"))
+    });
+});
 
-// SES VE KONFETİ SİSTEMİ
+let players = [
+    { id: 'p1', name: 'SİZ', pos: 0, money: 2000, emoji: '🎩', props: 0, jail: 0, bot: false },
+    { id: 'p2', name: 'BOT 1', pos: 0, money: 2000, emoji: '🏎️', props: 0, jail: 0, bot: true },
+    { id: 'p3', name: 'BOT 2', pos: 0, money: 2000, emoji: '🐕', props: 0, jail: 0, bot: true },
+    { id: 'p4', name: 'BOT 3', pos: 0, money: 2000, emoji: '🚢', props: 0, jail: 0, bot: true }
+];
+
+let turn = 0, moving = false, owners = {};
+
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSfx(freq, type = 'sine', dur = 0.1) {
-    try {
-        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime); osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + dur);
-    } catch(e){}
-}
+function playSfx(f, t='sine', d=0.1) { try { const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type=t; o.frequency.setValueAtTime(f, audioCtx.currentTime); g.gain.setValueAtTime(0.05, audioCtx.currentTime); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d); } catch(e){} }
 
 function init() {
-    const board = document.getElementById('board');
-    BOARD_DATA.forEach((cell, i) => {
-        const div = document.createElement('div');
-        div.className = 'cell'; div.style.width = '100px'; div.style.height = '100px';
-        div.style.left = (cell.x * 100) + 'px'; div.style.top = (cell.y * 100) + 'px';
-        div.innerHTML = `<div class="cell-header" style="background:${cell.c}"></div>${cell.n}<br>${cell.p > 0 ? cell.p + '₺' : ''}<div class="buildings-container"></div>`;
-        board.appendChild(div);
+    const b = document.getElementById('board');
+    BOARD_DATA.forEach((c, i) => {
+        const d = document.createElement('div'); d.className = 'cell';
+        d.style.left = (c.x * 60) + 'px'; d.style.top = (c.y * 60) + 'px';
+        d.innerHTML = `<div class="cell-header" style="background:${c.c}"></div>${c.n}<br>${c.p?c.p+'₺':''}<div class="b-cont"></div>`;
+        b.appendChild(d);
     });
     updateUI();
 }
 
 async function roll() {
-    if (state.moving) return;
-    state.moving = true; const p = state.turn === 1 ? state.p1 : state.p2;
-    if (state.turn === 1) { state.turnCount++; document.getElementById('turn-num').innerText = state.turnCount; }
-    
-    const d1 = Math.floor(Math.random() * 6) + 1;
-    const d2 = Math.floor(Math.random() * 6) + 1;
-    const dice = d1 + d2;
+    if (moving) return; moving = true;
+    const p = players[turn];
+    const d1 = Math.floor(Math.random()*6)+1, d2 = Math.floor(Math.random()*6)+1, dice = d1+d2;
     document.getElementById('dice-result').innerText = `🎲 ${d1}+${d2}`;
 
     if (p.jail > 0) {
@@ -77,97 +57,67 @@ async function roll() {
         else { p.jail--; log(`${p.name} hapiste. Kalan: ${p.jail+1}`); setTimeout(endTurn, 1000); return; }
     }
 
-    playSfx(300, 'square', 0.2);
     for (let i = 0; i < dice; i++) {
-        p.pos = (p.pos + 1) % BOARD_DATA.length;
-        if (p.pos === 0) { p.money += 200; log("Başlangıç +200₺"); }
-        playSfx(200 + (i*20), 'sine', 0.05); updateUI(); await new Promise(r => setTimeout(r, 200));
+        p.pos = (p.pos + 1) % 40;
+        if (p.pos === 0) { p.money += 200; playSfx(800, 'sine', 0.3); }
+        playSfx(200 + (i*15)); updateUI(); await new Promise(r => setTimeout(r, 150));
     }
     processCell(p);
 }
 
 function processCell(p) {
-    const cell = BOARD_DATA[p.pos];
-    const idx = p.pos;
-
-    if (cell.t === "prop") {
-        if (!state.owners[idx]) {
-            if (p.id === 'p1') showModal("MÜLK AL", cell.n, "🏠", `${cell.p}₺'ye alalım mı?`, () => { buy(p, idx); endTurn(); }, true);
-            else { if (p.money > cell.p + 250) buy(p, idx); endTurn(); }
-        } else if (state.owners[idx] !== p.id) {
-            const owner = state.owners[idx] === 'p1' ? state.p1 : state.p2;
-            p.money -= cell.r; owner.money += cell.r;
-            log(`${p.name} kira ödedi: ${cell.r}₺`);
-            playSfx(80, 'sawtooth', 0.2);
-
-            if (p.id === 'p1') {
-                const takePrice = cell.p * 2;
-                showModal("EL KOYMA", cell.n, "💣", `Mülkü ${takePrice}₺'ye zorla almak ister misin?`, () => {
-                    if(p.money >= takePrice) {
-                        p.money -= takePrice; owner.money += takePrice;
-                        owner.props--; // Önceki sahibinden düş
-                        buy(p, idx, true);
-                    } else { alert("Yetersiz bakiye!"); }
-                    endTurn();
-                }, true);
-            } else {
-                if (p.money > cell.p * 4) {
-                    p.money -= cell.p * 2; state.p1.money += cell.p * 2;
-                    state.p1.props--; buy(p, idx, true);
-                }
-                setTimeout(endTurn, 1000);
-            }
+    const idx = p.pos, c = BOARD_DATA[idx];
+    if (c.t === "prop") {
+        if (!owners[idx]) {
+            if (!p.bot) showModal("MÜLK AL", c.n, "🏠", `${c.p}₺?`, () => { buy(p, idx); endTurn(); }, true);
+            else { if (p.money > c.p + 300) buy(p, idx); endTurn(); }
+        } else if (owners[idx] !== p.id) {
+            const o = players.find(x => x.id === owners[idx]);
+            p.money -= c.r; o.money += c.r; playSfx(100, 'sawtooth', 0.2);
+            if (!p.bot) {
+                const take = c.p * 2;
+                showModal("EL KOYMA", c.n, "💣", `${take}₺'ye zorla al?`, () => { if(p.money>=take){p.money-=take; o.money+=take; o.props--; buy(p,idx,true);} endTurn(); }, true);
+            } else { if(p.money > c.p*4) { p.money-=c.p*2; o.money+=c.p*2; o.props--; buy(p,idx,true); } endTurn(); }
         } else endTurn();
-    } else if (cell.t === "chance" || cell.t === "chest") {
-        const pool = (cell.t === "chance" ? cards.chance : cards.chest);
-        const card = pool[Math.floor(Math.random() * pool.length)];
-        showModal(cell.t.toUpperCase(), card.m, card.i, "", () => { card.a(p); endTurn(); }, false);
-    } else if (cell.t === "tojail") { p.pos = 6; p.jail = 3; updateUI(); setTimeout(endTurn, 1000); }
+    } else if (c.n === "HAPSE GİT") { p.pos = 10; p.jail = 3; updateUI(); setTimeout(endTurn, 1000); }
     else endTurn();
 }
 
-function buy(p, idx, force = false) {
-    if(!force) p.money -= BOARD_DATA[idx].p;
-    p.props++; state.owners[idx] = p.id;
-    const c = document.getElementsByClassName('cell')[idx];
-    
-    // 3D Bina Ekleme
-    const bCont = c.querySelector('.buildings-container') || c;
-    bCont.innerHTML = `<div class="building-3d" style="border-color:${p.id === 'p1' ? 'var(--p1)' : 'var(--p2)'}">${p.id === 'p1' ? '🏠' : '🏢'}</div>`;
-    
-    updateUI(); playSfx(600, 'sine', 0.2);
+function buy(p, idx, f = false) {
+    if(!f) p.money -= BOARD_DATA[idx].p;
+    p.props++; owners[idx] = p.id;
+    const cell = document.getElementsByClassName('cell')[idx];
+    cell.querySelector('.b-cont').innerHTML = `<div class="building-3d" style="border-color:${p.id==='p1'?'red':(p.id==='p2'?'blue':'green')}">${p.id==='p1'?'🏠':'🏢'}</div>`;
+    updateUI(); playSfx(600);
 }
 
 function endTurn() {
     hideModal(); updateUI();
-    if (state.p1.money <= 0 || state.p2.money <= 0) {
-        alert("OYUN BİTTİ!"); location.reload(); return;
-    }
-    state.turn = state.turn === 1 ? 2 : 1; state.moving = false;
-    if (state.turn === 2) setTimeout(roll, 1000);
+    if (players.some(x => x.money <= 0)) { alert("OYUN BİTTİ!"); location.reload(); return; }
+    turn = (turn + 1) % 4; moving = false;
+    document.getElementById('current-player-name').innerText = players[turn].name;
+    if (players[turn].bot) setTimeout(roll, 1000);
 }
 
 function updateUI() {
-    document.getElementById('money-p1').innerText = state.p1.money + "₺";
-    document.getElementById('money-p2').innerText = state.p2.money + "₺";
-    document.getElementById('inv-p1').innerText = `🏠 x${state.p1.props}`;
-    document.getElementById('inv-p2').innerText = `🏢 x${state.p2.props}`;
-    const t1 = document.getElementById('p1-token'); t1.style.left = (BOARD_DATA[state.p1.pos].x*100+25)+"px"; t1.style.top = (BOARD_DATA[state.p1.pos].y*100+25)+"px";
-    const t2 = document.getElementById('p2-token'); t2.style.left = (BOARD_DATA[state.p2.pos].x*100+40)+"px"; t2.style.top = (BOARD_DATA[state.p2.pos].y*100+40)+"px";
+    players.forEach(p => {
+        document.getElementById(`money-${p.id}`).innerText = p.money + "₺";
+        document.getElementById(`inv-${p.id}`).innerText = `🏠 x${p.props}`;
+        const t = document.getElementById(`${p.id}-token`), cell = BOARD_DATA[p.pos];
+        const offset = (players.indexOf(p) * 10);
+        t.style.left = (cell.x * 60 + 10 + offset % 20) + "px";
+        t.style.top = (cell.y * 60 + 10 + Math.floor(offset / 20) * 10) + "px";
+    });
 }
 
-function showModal(t, m, i, d, cb, isB) {
+function showModal(t, m, i, d, cb, b) {
     document.getElementById('modal-overlay').classList.remove('hidden');
-    document.getElementById('modal-title').innerText = t;
-    document.getElementById('modal-desc').innerHTML = `<b>${m}</b><br>${d}`;
-    document.getElementById('decision-box').querySelector('.card-icon').innerText = i;
-    document.getElementById('buy-btn').innerText = isB ? (t === "EL KOYMA" ? "ZORLA AL (2X)" : "SATIN AL") : "TAMAM";
-    document.getElementById('buy-btn').onclick = cb;
-    document.getElementById('skip-btn').classList.toggle('hidden', !isB);
-    document.getElementById('skip-btn').onclick = () => { hideModal(); endTurn(); };
+    document.getElementById('modal-title').innerText = t; document.getElementById('modal-desc').innerHTML = `<b>${m}</b><br>${d}`;
+    document.querySelector('.card-icon').innerText = i; document.getElementById('buy-btn').onclick = cb;
+    document.getElementById('skip-btn').classList.toggle('hidden', !b); document.getElementById('skip-btn').onclick = endTurn;
 }
 
 function hideModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-function log(m) { const l = document.getElementById('event-log'); const i = document.createElement('li'); i.innerText = m; l.prepend(i); }
+function log(m) { const l = document.getElementById('event-log'), i = document.createElement('li'); i.innerText = m; l.prepend(i); }
 document.getElementById('roll-btn').onclick = () => { audioCtx.resume(); roll(); };
 init();
