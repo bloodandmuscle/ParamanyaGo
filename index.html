@@ -3,32 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramanya Go Pro</title>
+    <title>Paramanya Go: Konfeti Edition</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="confetti-canvas"></canvas> <!-- Konfeti Katmanı -->
+
     <div id="ui-overlay">
         <div class="player-hud" id="hud-p1">
-            <div class="avatar">👨‍🚀</div>
-            <div class="info"><span class="name">Sen</span><br><span class="money" id="money-p1">2000₺</span></div>
+            <div class="avatar">🎩</div>
+            <div class="info"><span>Siz</span><br><span class="money" id="money-p1">2000₺</span></div>
         </div>
         <div class="dice-section">
             <div id="dice-result">🎲</div>
             <button id="roll-btn">ZAR AT</button>
         </div>
         <div class="player-hud" id="hud-p2">
-            <div class="info" style="text-align: right;"><span class="name">Bot AI</span><br><span class="money" id="money-p2">2000₺</span></div>
-            <div class="avatar">🤖</div>
+            <div class="info" style="text-align: right;"><span>Bot</span><br><span class="money" id="money-p2">2000₺</span></div>
+            <div class="avatar">🏎️</div>
         </div>
     </div>
-    <div id="board-container"><div id="board"><div id="p1-token" class="token"></div><div id="p2-token" class="token"></div></div></div>
-    <div id="log-window"><ul id="event-log"><li>Oyun başladı!</li></ul></div>
+
+    <div id="board-container">
+        <div id="board">
+            <div id="p1-token" class="token">🎩</div>
+            <div id="p2-token" class="token">🏎️</div>
+        </div>
+    </div>
+
+    <div id="log-window"><ul id="event-log"><li>Hoş geldiniz! Konfeti için kazanın!</li></ul></div>
+
     <div id="modal-overlay" class="hidden">
         <div id="decision-box">
-            <h3 id="modal-title"></h3><p id="modal-desc"></p>
-            <div class="modal-btns"><button id="buy-btn" class="confirm">Satın Al</button><button id="skip-btn" class="cancel">Pas Geç</button></div>
+            <div class="card-icon">🎁</div>
+            <h3 id="modal-title"></h3>
+            <p id="modal-desc"></p>
+            <div class="modal-btns">
+                <button id="buy-btn" class="confirm">TAMAM</button>
+                <button id="skip-btn" class="cancel">KAPAT</button>
+            </div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
