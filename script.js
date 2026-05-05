@@ -40,30 +40,6 @@ let state = {
     owners: {}, turn: 1, moving: false, turnCount: 1 
 };
 
-// KONFETİ SİSTEMİ
-const canvas = document.getElementById('confetti-canvas');
-const ctx = canvas.getContext('2d');
-let particles = [];
-function createConfetti() {
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    for (let i = 0; i < 150; i++) {
-        particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height, 
-                         r: Math.random() * 6 + 4, d: Math.random() * 150, color: `hsl(${Math.random() * 360}, 100%, 50%)`, 
-                         tilt: Math.random() * 10, tiltAngleIncremental: Math.random() * 0.07 + 0.05, tiltAngle: 0 });
-    }
-    animateConfetti();
-}
-function animateConfetti() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach((p) => {
-        p.tiltAngle += p.tiltAngleIncremental; p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2; p.tilt = Math.sin(p.tiltAngle) * 15;
-        ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color; ctx.moveTo(p.x + p.tilt + p.r / 4, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4); ctx.stroke();
-        if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
-    });
-    requestAnimationFrame(animateConfetti);
-}
-
-// SES SİSTEMİ
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSfx(freq, type = 'sine', dur = 0.1) {
     try {
@@ -88,24 +64,19 @@ function init() {
 async function roll() {
     if (state.moving) return;
     state.moving = true; const p = state.turn === 1 ? state.p1 : state.p2;
-    
-    if (state.turn === 1) { 
-        state.turnCount++; 
-        document.getElementById('turn-num').innerText = state.turnCount;
-    }
-
+    if (state.turn === 1) { state.turnCount++; document.getElementById('turn-num').innerText = state.turnCount; }
     const d1 = Math.floor(Math.random() * 6) + 1; const d2 = Math.floor(Math.random() * 6) + 1; const dice = d1 + d2;
     document.getElementById('dice-result').innerText = `🎲 ${d1}+${d2}`;
 
     if (p.jail > 0) {
         if (d1 === d2) { log(`${p.name} ÇİFT ATTI! Çıktı.`); p.jail = 0; }
-        else { p.jail--; log(`${p.name} hapiste: ${p.jail + 1} tur kaldı.`); setTimeout(endTurn, 1000); return; }
+        else { p.jail--; log(`${p.name} hapiste: ${p.jail + 1} tur.`); setTimeout(endTurn, 1000); return; }
     }
 
     playSfx(300, 'square', 0.2);
     for (let i = 0; i < dice; i++) {
         p.pos = (p.pos + 1) % BOARD_DATA.length;
-        if (p.pos === 0) { p.money += 200; log("Başlangıç geçildi +200₺"); }
+        if (p.pos === 0) { p.money += 200; log("Başlangıç +200₺"); }
         playSfx(200 + (i*20), 'sine', 0.05); updateUI(); await new Promise(r => setTimeout(r, 200));
     }
     processCell(p);
@@ -127,23 +98,23 @@ function processCell(p) {
 
             if (p.id === 'p1') {
                 const takePrice = cell.p * 2;
-                showModal("EL KOYMA", cell.n, "💣", `Kira ödendi. Mülkü ${takePrice}₺'ye zorla almak ister misin?`, () => {
+                showModal("EL KOYMA", cell.n, "💣", `Kira ödendi. Mülkü ${takePrice}₺'ye zorla satın almak ister misin?`, () => {
                     if(p.money >= takePrice) {
                         p.money -= takePrice; owner.money += takePrice;
-                        owner.props--; // Eski sahibinden düş
+                        owner.props--; 
                         buy(p, idx, true);
                         log("DÜŞMANIN MÜLKÜNE EL KOYDUNUZ!");
                     } else { alert("Yeterli paranız yok!"); }
                     endTurn();
                 }, true);
             } else {
-                if (p.money > cell.p * 4) {
+                if (p.money > cell.p * 3.5) { // Bot'un el koyma zekası
                     p.money -= cell.p * 2; state.p1.money += cell.p * 2;
                     state.p1.props--;
                     buy(p, idx, true);
                     log("Bot mülkünüze EL KOYDU!");
                 }
-                endTurn();
+                setTimeout(endTurn, 1000);
             }
         } else endTurn();
     } else if (cell.t === "chance" || cell.t === "chest") {
@@ -151,7 +122,7 @@ function processCell(p) {
         const card = pool[Math.floor(Math.random() * pool.length)];
         showModal(cell.t.toUpperCase(), card.m, card.i, "", () => { card.a(p); endTurn(); }, false);
     } else if (cell.t === "tojail") { p.pos = 6; p.jail = 3; log("Hapse!"); updateUI(); setTimeout(endTurn, 1000); }
-    else if (cell.t === "tax") { p.money -= cell.r; log("Vergi ödendi!"); endTurn(); }
+    else if (cell.t === "tax") { p.money -= cell.r; log("Vergi!"); endTurn(); }
     else endTurn();
 }
 
@@ -169,8 +140,7 @@ function endTurn() {
     hideModal(); updateUI();
     if (state.p1.money <= 0 || state.p2.money <= 0) {
         const win = state.p1.money > 0;
-        if(win) createConfetti();
-        showModal("OYUN BİTTİ", win ? "KAZANDINIZ!" : "BOT KAZANDI", win ? "🏆" : "💀", "Tekrar oynamak için tıkla.", () => location.reload(), false);
+        showModal("OYUN BİTTİ", win ? "KAZANDINIZ!" : "BOT KAZANDI", win ? "🏆" : "💀", "Tekrar oyna.", () => location.reload(), false);
         return;
     }
     state.turn = state.turn === 1 ? 2 : 1; state.moving = false;
@@ -182,7 +152,6 @@ function updateUI() {
     document.getElementById('money-p2').innerText = state.p2.money + "₺";
     document.getElementById('inv-p1').innerText = `🏠 x${state.p1.props}`;
     document.getElementById('inv-p2').innerText = `🏢 x${state.p2.props}`;
-    
     const p1 = BOARD_DATA[state.p1.pos]; const p2 = BOARD_DATA[state.p2.pos];
     const t1 = document.getElementById('p1-token'); t1.style.left = (p1.x*100+20)+"px"; t1.style.top = (p1.y*100+20)+"px";
     const t2 = document.getElementById('p2-token'); t2.style.left = (p2.x*100+50)+"px"; t2.style.top = (p2.y*100+50)+"px";
@@ -192,8 +161,10 @@ function showModal(t, m, i, d, cb, isB) {
     document.getElementById('modal-overlay').classList.remove('hidden');
     document.getElementById('modal-title').innerText = t; document.getElementById('modal-desc').innerHTML = `<b>${m}</b><br>${d}`;
     document.getElementById('decision-box').querySelector('.card-icon').innerText = i;
-    document.getElementById('buy-btn').innerText = isB ? "AL / EL KOY" : "TAMAM"; document.getElementById('buy-btn').onclick = cb;
-    document.getElementById('skip-btn').classList.toggle('hidden', !isB); document.getElementById('skip-btn').onclick = () => { hideModal(); endTurn(); };
+    document.getElementById('buy-btn').innerText = isB ? (t === "EL KOYMA" ? "ZORLA AL (2X)" : "SATIN AL") : "TAMAM";
+    document.getElementById('buy-btn').onclick = cb;
+    document.getElementById('skip-btn').classList.toggle('hidden', !isB);
+    document.getElementById('skip-btn').onclick = () => { hideModal(); endTurn(); };
 }
 
 function hideModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
