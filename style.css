@@ -1,197 +1,72 @@
-/* GENEL AYARLAR */
 :root { 
-    --bg: #0f172a; 
-    --p1: #ef4444; 
-    --p2: #3b82f6; 
-    --gold: #f59e0b; 
-    --white: #f8fafc;
+    --bg: #1e293b; --p1: #ef4444; --p2: #3b82f6; --gold: #f59e0b; 
 }
 
 body { 
-    margin: 0; 
-    background: var(--bg); 
-    font-family: 'Poppins', sans-serif; 
-    overflow: hidden; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
+    margin: 0; background: radial-gradient(circle, #334155 0%, #0f172a 100%);
+    font-family: 'Poppins', sans-serif; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; 
+    height: 100vh; perspective: 1500px; /* 3D Derinlik hissi */
 }
 
-/* ARKA PLAN ŞEHİR EFEKTİ */
-.city-lights {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom, #0f172a, #1e293b);
-    z-index: -1;
-}
-
-/* KONFETİ TABAKASI */
-#confetti-canvas { 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100%; height: 100%; 
-    pointer-events: none; 
-    z-index: 2000; 
-}
-
-/* ÜST PANEL (OYUNCU BİLGİLERİ) */
-#ui-overlay { 
-    width: 100%; 
-    max-width: 900px; 
-    display: flex; 
-    justify-content: space-between; 
-    padding: 20px; 
-    z-index: 100; 
-}
+#ui-overlay { width: 95%; max-width: 1100px; display: flex; justify-content: space-between; padding: 15px; z-index: 1000; }
 
 .player-hud { 
-    background: rgba(255,255,255,0.1); 
-    backdrop-filter: blur(10px);
-    padding: 15px; 
-    border-radius: 20px; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px; 
-    color: white; 
-    border: 1px solid rgba(255,255,255,0.2); 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+    padding: 10px 20px; border-radius: 15px; border: 2px solid rgba(255,255,255,0.1); color: white;
 }
 
-.avatar-circle {
-    width: 55px; height: 55px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px; border: 2px solid var(--gold);
+/* 3D TAHTA KONTEYNERI */
+#board-container { 
+    position: relative; width: 600px; height: 600px;
+    transform-style: preserve-3d;
+    transform: rotateX(45deg) rotateZ(-30deg); /* İzometrik Açı */
+    transition: transform 0.5s ease;
+    margin-top: -30px;
 }
 
-.money { 
-    color: var(--gold); 
-    font-weight: bold; 
-    font-size: 1.3rem; 
-    display: block;
-}
-
-.player-label { font-size: 12px; opacity: 0.8; font-weight: bold; }
-.inventory { font-size: 11px; color: #94a3b8; }
-
-/* ZAR VE TUR SAYACI */
-.dice-section { text-align: center; }
-#dice-result { 
-    font-size: 2.8rem; 
-    color: white; 
-    text-shadow: 0 0 15px rgba(255,255,255,0.4); 
-    margin-bottom: 5px; 
-}
-
-#roll-btn { 
-    background: linear-gradient(135deg, #22c55e, #15803d); 
-    color: white; 
-    border: none; 
-    padding: 12px 30px; 
-    border-radius: 50px; 
-    cursor: pointer; 
-    font-weight: bold; 
-    font-size: 16px;
-    box-shadow: 0 4px #065f46; 
-    transition: 0.1s;
-}
-
-#roll-btn:active { transform: translateY(3px); box-shadow: 0 1px #065f46; }
-
-.turn-counter {
-    margin-top: 8px; color: #94a3b8; font-size: 12px; font-weight: bold;
-}
-
-/* OYUN TAHTASI */
-#board-container { perspective: 1200px; margin-top: 10px; }
 #board { 
-    width: 600px; height: 600px; 
-    background: #cbd5e1; 
-    position: relative; 
-    border: 12px solid #1e293b; 
-    border-radius: 12px; 
-    transform: rotateX(15deg); 
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    width: 600px; height: 600px; background: #94a3b8;
+    position: relative; border: 15px solid #1e293b;
+    box-shadow: -20px 20px 50px rgba(0,0,0,0.5), 0 0 0 10px #334155;
 }
 
 .cell { 
-    position: absolute; 
-    border: 1px solid #64748b; 
-    background: white; 
-    font-size: 10px; 
-    font-weight: bold; 
-    text-align: center; 
-    box-sizing: border-box; 
+    position: absolute; width: 100px; height: 100px;
+    background: white; border: 1px solid #475569;
+    box-sizing: border-box; display: flex; flex-direction: column;
 }
 
-.cell-header { width: 100%; height: 20%; margin-bottom: 5px; }
+.cell-header { width: 100%; height: 25px; border-bottom: 1px solid #475569; }
 
-/* EMOJİ PİYONLAR - SİYAH KONTÜRLÜ */
+/* PİYONLARIN DİK DURMASI İÇİN (Billboard Efekti) */
 .token { 
-    position: absolute; 
-    width: 40px; height: 40px; 
-    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    z-index: 50; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 34px; 
-    -webkit-text-stroke: 1.5px black; 
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); 
+    position: absolute; width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 45px; z-index: 100;
+    transform-style: preserve-3d;
+    /* Tahta yatık olsa da piyonu ekrana bakacak şekilde dikiyoruz */
+    transform: translateZ(25px) rotateZ(30deg) rotateX(-45deg);
+    -webkit-text-stroke: 2px black;
+    filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.6));
+    pointer-events: none;
 }
 
-/* MÜLKLERDEKİ BİNALAR */
-.buildings { 
-    position: absolute; 
-    bottom: 5px; width: 100%; 
-    display: flex; 
-    justify-content: center; 
-    font-size: 20px; 
+/* 3D YÜKSELEN BİNALAR */
+.building-3d {
+    position: absolute; bottom: 5px; left: 25px;
+    width: 40px; height: 60px; background: #f8fafc;
+    transform-style: preserve-3d;
+    transform: translateZ(30px) rotateZ(30deg) rotateX(-45deg);
+    border: 2px solid #334155; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 25px; box-shadow: 10px 10px 10px rgba(0,0,0,0.3);
 }
 
-/* OYUN AKIŞI LİSTESİ */
-#log-window { 
-    position: fixed; 
-    bottom: 20px; right: 20px; 
-    width: 230px; height: 130px; 
-    background: rgba(15, 23, 42, 0.95); 
-    color: white; 
-    padding: 12px; 
-    font-size: 11px; 
-    overflow-y: auto; 
-    border-radius: 15px; 
-    border: 1px solid #334155; 
-}
-.log-title { font-weight: bold; color: var(--gold); margin-bottom: 5px; border-bottom: 1px solid #334155; }
-#event-log { list-style: none; padding: 0; margin: 0; }
-#event-log li { margin-bottom: 5px; padding-bottom: 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-/* MODAL / KART TASARIMI */
+#log-window { position: fixed; bottom: 20px; right: 20px; width: 250px; background: rgba(0,0,0,0.8); border-radius: 15px; color: white; padding: 10px; font-size: 12px; }
+#dice-result { font-size: 3rem; color: #facc15; text-shadow: 0 0 10px black; }
+#roll-btn { background: #22c55e; border: none; color: white; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 18px; box-shadow: 0 5px #15803d; }
+#roll-btn:active { transform: translateY(3px); box-shadow: 0 2px #15803d; }
 .hidden { display: none !important; }
-#modal-overlay { 
-    position: fixed; inset: 0; 
-    background: rgba(0,0,0,0.85); 
-    display: flex; justify-content: center; 
-    align-items: center; 
-    z-index: 1000; 
-    backdrop-filter: blur(5px);
-}
-
-#decision-box { 
-    background: white; 
-    padding: 30px; 
-    border-radius: 30px; 
-    text-align: center; 
-    width: 280px; 
-    border: 8px solid var(--gold); 
-    box-shadow: 0 0 40px rgba(0,0,0,0.6);
-}
-
-.card-icon { font-size: 75px; margin-bottom: 15px; }
-#modal-title { margin: 0; color: #1e293b; font-size: 24px; }
-#modal-desc { color: #475569; margin: 15px 0; line-height: 1.4; }
-
-.modal-btns { display: flex; gap: 10px; justify-content: center; }
-.confirm { background: #22c55e; color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-.cancel { background: #94a3b8; color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+#modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: flex; justify-content: center; align-items: center; }
+#decision-box { background: white; padding: 30px; border-radius: 25px; text-align: center; border: 10px solid var(--gold); }
