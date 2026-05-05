@@ -1,0 +1,16 @@
+:root { --bg: #0f172a; --p1: #ef4444; --p2: #3b82f6; --gold: #f59e0b; }
+body { margin: 0; background: var(--bg); font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+#ui-overlay { width: 100%; max-width: 900px; display: flex; justify-content: space-between; padding: 20px; z-index: 100; }
+.player-hud { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 10px; color: white; border: 1px solid white; }
+.money { color: var(--gold); font-weight: bold; }
+#dice-result { font-size: 3rem; text-align: center; }
+#roll-btn { background: #22c55e; color: white; border: none; padding: 10px 30px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+#board { width: 600px; height: 600px; background: #e2e8f0; position: relative; border: 10px solid #334155; transform: rotateX(15deg); }
+.cell { position: absolute; border: 1px solid #94a3b8; background: white; font-size: 10px; font-weight: bold; text-align: center; box-sizing: border-box; }
+.cell-header { width: 100%; height: 20%; margin-bottom: 5px; }
+.token { width: 25px; height: 25px; border-radius: 50%; position: absolute; transition: 0.4s; z-index: 50; border: 2px solid white; }
+#p1-token { background: var(--p1); } #p2-token { background: var(--p2); }
+#log-window { position: fixed; bottom: 10px; right: 10px; width: 200px; height: 120px; background: rgba(0,0,0,0.8); color: white; padding: 10px; font-size: 11px; overflow-y: auto; border-radius: 10px; }
+.hidden { display: none !important; }
+#modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+#decision-box { background: white; padding: 20px; border-radius: 15px; text-align: center; }
