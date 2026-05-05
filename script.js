@@ -9,7 +9,7 @@ const BOARD_DATA = [
     { n: "ETİLER", t: "prop", p: 350, r: 220, c: "#10b981", x: 5, y: 2 },
     { n: "HAZİNE", t: "chest", p: 0, r: 0, c: "#34d399", x: 5, y: 3 },
     { n: "BEBEK", t: "prop", p: 400, r: 260, c: "#10b981", x: 5, y: 4 },
-    { n: "OTOPARK", t: "park", p: 0, r: 0, c: "#64748b", x: 5, y: 5 },
+    { n: "PARK", t: "park", p: 0, r: 0, c: "#64748b", x: 5, y: 5 },
     { n: "NİŞANTAŞI", t: "prop", p: 450, r: 320, c: "#a855f7", x: 4, y: 5 },
     { n: "ŞANS", t: "chance", p: 0, r: 0, c: "#f59e0b", x: 3, y: 5 },
     { n: "BEYOĞLU", t: "prop", p: 500, r: 400, c: "#a855f7", x: 2, y: 5 },
@@ -29,8 +29,7 @@ const cards = {
     ],
     chest: [
         { m: "Hazine Buldun! +300₺", a: (p) => p.money += 300, i: "💰" },
-        { m: "Yatırım Karı! +200₺", a: (p) => p.money += 200, i: "🏦" },
-        { m: "Bulunan Eşya! +100₺", a: (p) => p.money += 100, i: "💎" }
+        { m: "Yatırım Karı! +200₺", a: (p) => p.money += 200, i: "🏦" }
     ]
 };
 
@@ -40,6 +39,7 @@ let state = {
     owners: {}, turn: 1, moving: false, turnCount: 1 
 };
 
+// SES VE KONFETİ SİSTEMİ
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSfx(freq, type = 'sine', dur = 0.1) {
     try {
@@ -53,9 +53,10 @@ function playSfx(freq, type = 'sine', dur = 0.1) {
 function init() {
     const board = document.getElementById('board');
     BOARD_DATA.forEach((cell, i) => {
-        const div = document.createElement('div'); div.className = 'cell'; div.style.width = '100px'; div.style.height = '100px';
+        const div = document.createElement('div');
+        div.className = 'cell'; div.style.width = '100px'; div.style.height = '100px';
         div.style.left = (cell.x * 100) + 'px'; div.style.top = (cell.y * 100) + 'px';
-        div.innerHTML = `<div class="cell-header" style="background:${cell.c}"></div>${cell.n}<br>${cell.p > 0 ? cell.p + '₺' : ''}<div class="buildings"></div>`;
+        div.innerHTML = `<div class="cell-header" style="background:${cell.c}"></div>${cell.n}<br>${cell.p > 0 ? cell.p + '₺' : ''}<div class="buildings-container"></div>`;
         board.appendChild(div);
     });
     updateUI();
@@ -65,12 +66,15 @@ async function roll() {
     if (state.moving) return;
     state.moving = true; const p = state.turn === 1 ? state.p1 : state.p2;
     if (state.turn === 1) { state.turnCount++; document.getElementById('turn-num').innerText = state.turnCount; }
-    const d1 = Math.floor(Math.random() * 6) + 1; const d2 = Math.floor(Math.random() * 6) + 1; const dice = d1 + d2;
+    
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    const dice = d1 + d2;
     document.getElementById('dice-result').innerText = `🎲 ${d1}+${d2}`;
 
     if (p.jail > 0) {
         if (d1 === d2) { log(`${p.name} ÇİFT ATTI! Çıktı.`); p.jail = 0; }
-        else { p.jail--; log(`${p.name} hapiste: ${p.jail + 1} tur.`); setTimeout(endTurn, 1000); return; }
+        else { p.jail--; log(`${p.name} hapiste. Kalan: ${p.jail+1}`); setTimeout(endTurn, 1000); return; }
     }
 
     playSfx(300, 'square', 0.2);
@@ -98,21 +102,18 @@ function processCell(p) {
 
             if (p.id === 'p1') {
                 const takePrice = cell.p * 2;
-                showModal("EL KOYMA", cell.n, "💣", `Kira ödendi. Mülkü ${takePrice}₺'ye zorla satın almak ister misin?`, () => {
+                showModal("EL KOYMA", cell.n, "💣", `Mülkü ${takePrice}₺'ye zorla almak ister misin?`, () => {
                     if(p.money >= takePrice) {
                         p.money -= takePrice; owner.money += takePrice;
-                        owner.props--; 
+                        owner.props--; // Önceki sahibinden düş
                         buy(p, idx, true);
-                        log("DÜŞMANIN MÜLKÜNE EL KOYDUNUZ!");
-                    } else { alert("Yeterli paranız yok!"); }
+                    } else { alert("Yetersiz bakiye!"); }
                     endTurn();
                 }, true);
             } else {
-                if (p.money > cell.p * 3.5) { // Bot'un el koyma zekası
+                if (p.money > cell.p * 4) {
                     p.money -= cell.p * 2; state.p1.money += cell.p * 2;
-                    state.p1.props--;
-                    buy(p, idx, true);
-                    log("Bot mülkünüze EL KOYDU!");
+                    state.p1.props--; buy(p, idx, true);
                 }
                 setTimeout(endTurn, 1000);
             }
@@ -121,27 +122,26 @@ function processCell(p) {
         const pool = (cell.t === "chance" ? cards.chance : cards.chest);
         const card = pool[Math.floor(Math.random() * pool.length)];
         showModal(cell.t.toUpperCase(), card.m, card.i, "", () => { card.a(p); endTurn(); }, false);
-    } else if (cell.t === "tojail") { p.pos = 6; p.jail = 3; log("Hapse!"); updateUI(); setTimeout(endTurn, 1000); }
-    else if (cell.t === "tax") { p.money -= cell.r; log("Vergi!"); endTurn(); }
+    } else if (cell.t === "tojail") { p.pos = 6; p.jail = 3; updateUI(); setTimeout(endTurn, 1000); }
     else endTurn();
 }
 
 function buy(p, idx, force = false) {
     if(!force) p.money -= BOARD_DATA[idx].p;
-    p.props++;
-    state.owners[idx] = p.id;
+    p.props++; state.owners[idx] = p.id;
     const c = document.getElementsByClassName('cell')[idx];
-    c.querySelector('.buildings').innerText = p.id === 'p1' ? '🏠' : '🏢';
-    c.style.boxShadow = `inset 0 0 15px ${p.id === 'p1' ? 'rgba(239,68,68,0.7)' : 'rgba(59,130,246,0.7)'}`;
+    
+    // 3D Bina Ekleme
+    const bCont = c.querySelector('.buildings-container') || c;
+    bCont.innerHTML = `<div class="building-3d" style="border-color:${p.id === 'p1' ? 'var(--p1)' : 'var(--p2)'}">${p.id === 'p1' ? '🏠' : '🏢'}</div>`;
+    
     updateUI(); playSfx(600, 'sine', 0.2);
 }
 
 function endTurn() {
     hideModal(); updateUI();
     if (state.p1.money <= 0 || state.p2.money <= 0) {
-        const win = state.p1.money > 0;
-        showModal("OYUN BİTTİ", win ? "KAZANDINIZ!" : "BOT KAZANDI", win ? "🏆" : "💀", "Tekrar oyna.", () => location.reload(), false);
-        return;
+        alert("OYUN BİTTİ!"); location.reload(); return;
     }
     state.turn = state.turn === 1 ? 2 : 1; state.moving = false;
     if (state.turn === 2) setTimeout(roll, 1000);
@@ -152,14 +152,14 @@ function updateUI() {
     document.getElementById('money-p2').innerText = state.p2.money + "₺";
     document.getElementById('inv-p1').innerText = `🏠 x${state.p1.props}`;
     document.getElementById('inv-p2').innerText = `🏢 x${state.p2.props}`;
-    const p1 = BOARD_DATA[state.p1.pos]; const p2 = BOARD_DATA[state.p2.pos];
-    const t1 = document.getElementById('p1-token'); t1.style.left = (p1.x*100+20)+"px"; t1.style.top = (p1.y*100+20)+"px";
-    const t2 = document.getElementById('p2-token'); t2.style.left = (p2.x*100+50)+"px"; t2.style.top = (p2.y*100+50)+"px";
+    const t1 = document.getElementById('p1-token'); t1.style.left = (BOARD_DATA[state.p1.pos].x*100+25)+"px"; t1.style.top = (BOARD_DATA[state.p1.pos].y*100+25)+"px";
+    const t2 = document.getElementById('p2-token'); t2.style.left = (BOARD_DATA[state.p2.pos].x*100+40)+"px"; t2.style.top = (BOARD_DATA[state.p2.pos].y*100+40)+"px";
 }
 
 function showModal(t, m, i, d, cb, isB) {
     document.getElementById('modal-overlay').classList.remove('hidden');
-    document.getElementById('modal-title').innerText = t; document.getElementById('modal-desc').innerHTML = `<b>${m}</b><br>${d}`;
+    document.getElementById('modal-title').innerText = t;
+    document.getElementById('modal-desc').innerHTML = `<b>${m}</b><br>${d}`;
     document.getElementById('decision-box').querySelector('.card-icon').innerText = i;
     document.getElementById('buy-btn').innerText = isB ? (t === "EL KOYMA" ? "ZORLA AL (2X)" : "SATIN AL") : "TAMAM";
     document.getElementById('buy-btn').onclick = cb;
