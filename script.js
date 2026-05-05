@@ -29,11 +29,16 @@ const cards = {
     ],
     chest: [
         { m: "Hazine Buldun! +300₺", a: (p) => p.money += 300, i: "💰" },
-        { m: "Yatırım Karı! +200₺", a: (p) => p.money += 200, i: "🏦" }
+        { m: "Yatırım Karı! +200₺", a: (p) => p.money += 200, i: "🏦" },
+        { m: "Bulunan Eşya! +100₺", a: (p) => p.money += 100, i: "💎" }
     ]
 };
 
-let state = { p1: { pos: 0, money: 2000, id: 'p1', name: 'Siz', emoji: '🎩', jail: 0 }, p2: { pos: 0, money: 2000, id: 'p2', name: 'Bot', emoji: '🏎️', jail: 0 }, owners: {}, turn: 1, moving: false };
+let state = { 
+    p1: { pos: 0, money: 2000, id: 'p1', name: 'Siz', emoji: '🎩', jail: 0, props: 0 }, 
+    p2: { pos: 0, money: 2000, id: 'p2', name: 'Bot', emoji: '🏎️', jail: 0, props: 0 }, 
+    owners: {}, turn: 1, moving: false, turnCount: 1 
+};
 
 // KONFETİ SİSTEMİ
 const canvas = document.getElementById('confetti-canvas');
@@ -50,7 +55,7 @@ function createConfetti() {
 }
 function animateConfetti() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach((p, i) => {
+    particles.forEach((p) => {
         p.tiltAngle += p.tiltAngleIncremental; p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2; p.tilt = Math.sin(p.tiltAngle) * 15;
         ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color; ctx.moveTo(p.x + p.tilt + p.r / 4, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4); ctx.stroke();
         if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
@@ -83,18 +88,24 @@ function init() {
 async function roll() {
     if (state.moving) return;
     state.moving = true; const p = state.turn === 1 ? state.p1 : state.p2;
+    
+    if (state.turn === 1) { 
+        state.turnCount++; 
+        document.getElementById('turn-num').innerText = state.turnCount;
+    }
+
     const d1 = Math.floor(Math.random() * 6) + 1; const d2 = Math.floor(Math.random() * 6) + 1; const dice = d1 + d2;
     document.getElementById('dice-result').innerText = `🎲 ${d1}+${d2}`;
 
     if (p.jail > 0) {
         if (d1 === d2) { log(`${p.name} ÇİFT ATTI! Çıktı.`); p.jail = 0; }
-        else { p.jail--; log(`${p.name} hapiste: ${p.jail + 1}`); setTimeout(endTurn, 1000); return; }
+        else { p.jail--; log(`${p.name} hapiste: ${p.jail + 1} tur kaldı.`); setTimeout(endTurn, 1000); return; }
     }
 
     playSfx(300, 'square', 0.2);
     for (let i = 0; i < dice; i++) {
         p.pos = (p.pos + 1) % BOARD_DATA.length;
-        if (p.pos === 0) { p.money += 200; log("Başlangıç +200₺"); }
+        if (p.pos === 0) { p.money += 200; log("Başlangıç geçildi +200₺"); }
         playSfx(200 + (i*20), 'sine', 0.05); updateUI(); await new Promise(r => setTimeout(r, 200));
     }
     processCell(p);
@@ -106,11 +117,9 @@ function processCell(p) {
 
     if (cell.t === "prop") {
         if (!state.owners[idx]) {
-            // SAHİPSİZ MÜLK
             if (p.id === 'p1') showModal("MÜLK AL", cell.n, "🏠", `${cell.p}₺'ye alalım mı?`, () => { buy(p, idx); endTurn(); }, true);
             else { if (p.money > cell.p + 250) buy(p, idx); endTurn(); }
         } else if (state.owners[idx] !== p.id) {
-            // RAKİP MÜLKÜ (KİRA + EL KOYMA)
             const owner = state.owners[idx] === 'p1' ? state.p1 : state.p2;
             p.money -= cell.r; owner.money += cell.r;
             log(`${p.name} kira ödedi: ${cell.r}₺`);
@@ -118,20 +127,19 @@ function processCell(p) {
 
             if (p.id === 'p1') {
                 const takePrice = cell.p * 2;
-                showModal("EL KOYMA", cell.n, "💣", `Kira ödendi. Bu mülkü ${takePrice}₺'ye zorla satın almak ister misin?`, () => {
+                showModal("EL KOYMA", cell.n, "💣", `Kira ödendi. Mülkü ${takePrice}₺'ye zorla almak ister misin?`, () => {
                     if(p.money >= takePrice) {
-                        p.money -= takePrice;
-                        owner.money += takePrice;
+                        p.money -= takePrice; owner.money += takePrice;
+                        owner.props--; // Eski sahibinden düş
                         buy(p, idx, true);
                         log("DÜŞMANIN MÜLKÜNE EL KOYDUNUZ!");
                     } else { alert("Yeterli paranız yok!"); }
                     endTurn();
                 }, true);
             } else {
-                // Bot zekası: Eğer çok parası varsa ve kira ödediyse mülkü geri alabilir
-                if (p.money > cell.p * 3) {
-                    p.money -= cell.p * 2;
-                    state.p1.money += cell.p * 2;
+                if (p.money > cell.p * 4) {
+                    p.money -= cell.p * 2; state.p1.money += cell.p * 2;
+                    state.p1.props--;
                     buy(p, idx, true);
                     log("Bot mülkünüze EL KOYDU!");
                 }
@@ -143,12 +151,13 @@ function processCell(p) {
         const card = pool[Math.floor(Math.random() * pool.length)];
         showModal(cell.t.toUpperCase(), card.m, card.i, "", () => { card.a(p); endTurn(); }, false);
     } else if (cell.t === "tojail") { p.pos = 6; p.jail = 3; log("Hapse!"); updateUI(); setTimeout(endTurn, 1000); }
-    else if (cell.t === "tax") { p.money -= cell.r; log("Vergi!"); endTurn(); }
+    else if (cell.t === "tax") { p.money -= cell.r; log("Vergi ödendi!"); endTurn(); }
     else endTurn();
 }
 
 function buy(p, idx, force = false) {
     if(!force) p.money -= BOARD_DATA[idx].p;
+    p.props++;
     state.owners[idx] = p.id;
     const c = document.getElementsByClassName('cell')[idx];
     c.querySelector('.buildings').innerText = p.id === 'p1' ? '🏠' : '🏢';
@@ -171,6 +180,9 @@ function endTurn() {
 function updateUI() {
     document.getElementById('money-p1').innerText = state.p1.money + "₺";
     document.getElementById('money-p2').innerText = state.p2.money + "₺";
+    document.getElementById('inv-p1').innerText = `🏠 x${state.p1.props}`;
+    document.getElementById('inv-p2').innerText = `🏢 x${state.p2.props}`;
+    
     const p1 = BOARD_DATA[state.p1.pos]; const p2 = BOARD_DATA[state.p2.pos];
     const t1 = document.getElementById('p1-token'); t1.style.left = (p1.x*100+20)+"px"; t1.style.top = (p1.y*100+20)+"px";
     const t2 = document.getElementById('p2-token'); t2.style.left = (p2.x*100+50)+"px"; t2.style.top = (p2.y*100+50)+"px";
