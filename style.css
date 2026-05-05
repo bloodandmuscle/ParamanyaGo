@@ -1,45 +1,30 @@
-:root { --bg: #0f172a; --p1: #ef4444; --p2: #3b82f6; --gold: #f59e0b; }
+:root { --bg: #0f172a; --gold: #f59e0b; }
 body { margin: 0; background: var(--bg); font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+
+/* Konfeti Canvas Ayarı */
+#confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
+
 #ui-overlay { width: 100%; max-width: 900px; display: flex; justify-content: space-between; padding: 20px; z-index: 100; }
-.player-hud { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 10px; color: white; border: 1px solid white; }
-.money { color: var(--gold); font-weight: bold; }
-#dice-result { font-size: 3rem; text-align: center; }
-#roll-btn { background: #22c55e; color: white; border: none; padding: 10px 30px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-#board { width: 600px; height: 600px; background: #e2e8f0; position: relative; border: 10px solid #334155; transform: rotateX(15deg); }
-.cell { position: absolute; border: 1px solid #94a3b8; background: white; font-size: 10px; font-weight: bold; text-align: center; box-sizing: border-box; }
-.cell-header { width: 100%; height: 20%; margin-bottom: 5px; }
-.token { width: 25px; height: 25px; border-radius: 50%; position: absolute; transition: 0.4s; z-index: 50; border: 2px solid white; }
-#p1-token { background: var(--p1); } #p2-token { background: var(--p2); }
-#log-window { position: fixed; bottom: 10px; right: 10px; width: 200px; height: 120px; background: rgba(0,0,0,0.8); color: white; padding: 10px; font-size: 11px; overflow-y: auto; border-radius: 10px; }
+.player-hud { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 15px; display: flex; align-items: center; gap: 10px; color: white; border: 1px solid rgba(255,255,255,0.3); }
+.money { color: var(--gold); font-weight: bold; font-size: 1.2rem; }
+
+#dice-result { font-size: 2.5rem; text-align: center; color: white; margin-bottom: 5px; }
+#roll-btn { background: #22c55e; color: white; border: none; padding: 12px 35px; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 4px #15803d; }
+
+#board { width: 600px; height: 600px; background: #cbd5e1; position: relative; border: 12px solid #1e293b; border-radius: 8px; transform: rotateX(10deg); margin-top: 10px; }
+.cell { position: absolute; border: 1px solid #64748b; background: white; font-size: 10px; font-weight: bold; text-align: center; box-sizing: border-box; }
+.cell-header { width: 100%; height: 22%; margin-bottom: 4px; }
+
+.token { position: absolute; width: 40px; height: 40px; transition: 0.4s; z-index: 50; display: flex; align-items: center; justify-content: center; font-size: 32px; -webkit-text-stroke: 1.5px black; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.4)); }
+.buildings { position: absolute; bottom: 5px; width: 100%; display: flex; justify-content: center; font-size: 18px; }
+
+#log-window { position: fixed; bottom: 15px; right: 15px; width: 240px; height: 120px; background: rgba(15, 23, 42, 0.9); color: white; padding: 10px; font-size: 11px; overflow-y: auto; border-radius: 12px; }
+#event-log { list-style: none; padding: 0; margin: 0; }
+
 .hidden { display: none !important; }
-#modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-#decision-box { background: white; padding: 20px; border-radius: 15px; text-align: center; }
-/* Sahiplik Şeridi */
-.cell-header {
-    transition: all 0.3s ease;
-}
-
-/* Oyuncu 1 Satın Alınca Şerit Rengi */
-.owner-p1 .cell-header {
-    background: var(--p1) !important;
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
-}
-
-/* Bot Satın Alınca Şerit Rengi */
-.owner-p2 .cell-header {
-    background: var(--p2) !important;
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
-}
-
-/* Bina İkonları Tasarımı */
-.buildings {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-    margin-top: 2px;
-}
-
-.building-icon {
-    font-size: 14px;
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
-}
+#modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+#decision-box { background: white; padding: 35px; border-radius: 25px; text-align: center; width: 300px; border: 8px solid var(--gold); }
+.card-icon { font-size: 70px; margin-bottom: 20px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 25px; justify-content: center; }
+.confirm { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+.cancel { background: #94a3b8; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
